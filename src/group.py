@@ -18,12 +18,23 @@ class CameraGroup(pygame.sprite.Group):
         self.offset.y = half_height
         # pylint: enable=c-extension-no-member
 
+        self.floor = \
+            pygame.image.load('../graphics/tilemap/ground.png').convert()
+        self.floor_rect = self.floor.get_rect(topleft=(0, 0))
+
     def custom_draw(self, player: pygame.sprite.Sprite) -> None:
         """ Draw all group sprites relative to the player position.
 
             :param player: player sprite
             :type  player: pygame.sprite.Sprite
         """
+        offset_from_player = [
+            a - b
+            for a, b in zip(self.floor_rect.topleft, player.rect.topleft)
+        ]
+        pos_on_screen = offset_from_player + self.offset
+        self.display_surface.blit(self.floor, pos_on_screen)
+
         sorted_sprites = sorted(self.sprites(), key=lambda s: s.rect.centery)
         for sprite in sorted_sprites:  # inherited
             offset_from_player = [
