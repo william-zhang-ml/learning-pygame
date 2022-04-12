@@ -5,7 +5,7 @@ from typing import List, Tuple
 import pygame
 
 
-SPEED = 10  # pixels per second
+SPEED = 20  # pixels per second
 
 
 class Player(pygame.sprite.Sprite):
@@ -27,6 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.image = \
             pygame.image.load('../graphics/test/player.png').convert_alpha()
         self.rect = self.image.get_rect(topleft=pos)
+        self.hitbox = self.rect.inflate(0, -26)  # pixels to add/sub
         # pylint: disable=c-extension-no-member
         self.direction = pygame.math.Vector2()
         # pylint: enable=c-extension-no-member
@@ -60,28 +61,29 @@ class Player(pygame.sprite.Sprite):
         """
         if direction == 'horizontal':
             for sprite in self.obstacles:
-                if sprite.rect.colliderect(self.rect):
+                if sprite.hitbox.colliderect(self.hitbox):
                     if self.direction.x > 0:
-                        self.rect.right = sprite.rect.left
+                        self.hitbox.right = sprite.hitbox.left
                     if self.direction.x < 0:
-                        self.rect.left = sprite.rect.right
+                        self.hitbox.left = sprite.hitbox.right
 
         if direction == 'vertical':
             for sprite in self.obstacles:
-                if sprite.rect.colliderect(self.rect):
+                if sprite.hitbox.colliderect(self.hitbox):
                     if self.direction.y > 0:
-                        self.rect.bottom = sprite.rect.top
+                        self.hitbox.bottom = sprite.hitbox.top
                     if self.direction.y < 0:
-                        self.rect.top = sprite.rect.bottom
+                        self.hitbox.top = sprite.hitbox.bottom
 
     def move(self) -> None:
         """ Update player location in game. """
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
-        self.rect.x += SPEED * self.direction.x
+        self.hitbox.x += SPEED * self.direction.x
         self.handle_collision('horizontal')
-        self.rect.y += SPEED * self.direction.y
+        self.hitbox.y += SPEED * self.direction.y
         self.handle_collision('vertical')
+        self.rect.center = self.hitbox.center
 
     def update(self) -> None:
         """ Check user input for movement and move. """

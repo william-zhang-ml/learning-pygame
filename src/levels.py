@@ -5,6 +5,7 @@ This module implements levels for the <title TBD> RPG game.
 import pygame
 from tile import Tile
 from player import Player
+from group import CameraGroup
 
 
 LEVEL_MAP = [
@@ -37,7 +38,7 @@ class Level:
     def __init__(self) -> None:
         """ Constructor. """
         self.display_surface = pygame.display.get_surface()
-        self.visible_sprites = pygame.sprite.Group()   # can see on screen
+        self.visible_sprites = CameraGroup()           # can see on screen
         self.obstacle_sprites = pygame.sprite.Group()  # impede player movement
         self.player = None  # easy-access, often-used, assigned in create_map
         self.create_map()
@@ -61,5 +62,5 @@ class Level:
 
     def run(self) -> None:
         """ Load level into game. """
-        self.visible_sprites.draw(self.display_surface)
+        self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
