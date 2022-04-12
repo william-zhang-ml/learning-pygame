@@ -3,6 +3,7 @@ This module is the main module for the <title TBD> RPG game.
 """
 import sys
 import pygame
+from levels import Level
 
 
 WIDTH = 1600
@@ -19,6 +20,8 @@ class Game:
         # pylint: enable=no-member
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         self.clock = pygame.time.Clock()
+        self.level = Level()
+        pygame.display.set_caption('RPG')
 
     def run(self) -> None:
         """ Start game engine. """
@@ -26,6 +29,7 @@ class Game:
         events = pygame.event.get()
         while all(e.type != pygame.QUIT for e in events):
             self.screen.fill('black')
+            self.level.run()
             pygame.display.update()
             self.clock.tick(FPS)
             events = pygame.event.get()
