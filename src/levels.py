@@ -6,30 +6,9 @@ import pygame
 from tile import Tile
 from player import Player
 from group import CameraGroup
+from utils import load_map_layer
 
 
-LEVEL_MAP = [
-    list('xxxxxxxxxxxxxxxxxxxx'),
-    list('x                  x'),
-    list('x p                x'),
-    list('x  x     xxxxx     x'),
-    list('x  x         x     x'),
-    list('x  x         x     x'),
-    list('x  x         x     x'),
-    list('x  x         x     x'),
-    list('x  x         x     x'),
-    list('x  x         x     x'),
-    list('x  x         x     x'),
-    list('x  x         xxx   x'),
-    list('x      x x         x'),
-    list('x     xxxxx        x'),
-    list('x      xxx         x'),
-    list('x       x          x'),
-    list('x                  x'),
-    list('x                  x'),
-    list('x                  x'),
-    list('xxxxxxxxxxxxxxxxxxxx')
-]
 TILE_SIZE = 64
 
 
@@ -40,25 +19,29 @@ class Level:
         self.display_surface = pygame.display.get_surface()
         self.visible_sprites = CameraGroup()           # can see on screen
         self.obstacle_sprites = pygame.sprite.Group()  # impede player movement
-        self.player = None  # easy-access, often-used, assigned in create_map
+        self.player = Player(
+            (2000, 1430),
+            [self.visible_sprites],
+            self.obstacle_sprites
+        )
         self.create_map()
 
     def create_map(self) -> None:
-        """ Assign tiles to locations and sprite groups based on map chars. """
-        for row_idx, row in enumerate(LEVEL_MAP):
-            for col_idx, val in enumerate(row):
-                x_pixel, y_pixel = TILE_SIZE * col_idx, TILE_SIZE * row_idx
-                if val == 'x':
-                    Tile(
-                        (x_pixel, y_pixel),
-                        [self.visible_sprites, self.obstacle_sprites]
-                    )
-                elif val == 'p':
-                    self.player = Player(
-                        (x_pixel, y_pixel),
-                        [self.visible_sprites],
-                        self.obstacle_sprites
-                    )
+        """ Assign tiles to locations and sprite groups based on map nums. """
+        layers = {
+            'boundary': load_map_layer('../map/map_FloorBlocks.csv')
+        }
+
+        for _, layer in layers.items():
+            for row_idx, row in enumerate(layer):
+                for col_idx, val in enumerate(row):
+                    x_pixel, y_pixel = TILE_SIZE * col_idx, TILE_SIZE * row_idx
+                    if val == 395:
+                        Tile(
+                            (x_pixel, y_pixel),
+                            [self.obstacle_sprites],
+                            'invisible'
+                        )
 
     def run(self) -> None:
         """ Load level into game. """
