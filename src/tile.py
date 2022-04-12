@@ -1,20 +1,21 @@
 """
-This module contains tile assets for constructing level maps.
+This module implements tile assets for constructing level maps.
 """
+from typing import List, Tuple
 import pygame
 
 
 class Tile(pygame.sprite.Sprite):
     """ Rock asset for levels. """
     def __init__(self,
-                 pos,
-                 groups: pygame.sprite.Group) -> None:
+                 pos: Tuple[int, int],
+                 groups: List[pygame.sprite.Group]) -> None:
         """ Constructor.
 
-        :param pos: _description_
-        :type  pos: _type_
-        :param groups: _description_
-        :type  groups: _type_
+        :param pos:    location of top-left corner in pixels (x, y)
+        :type  pos:    Tuple[int, int]
+        :param groups: sprite groups containing this tile
+        :type  groups: List[pygame.sprite.Group]
         """
         super().__init__(groups)
         self.image = \

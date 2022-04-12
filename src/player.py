@@ -1,6 +1,7 @@
 """
 This module implements the player asset.
 """
+from typing import List, Tuple
 import pygame
 
 
@@ -10,15 +11,17 @@ SPEED = 10  # pixels per second
 class Player(pygame.sprite.Sprite):
     """ Player asset for levels. """
     def __init__(self,
-                 pos,
-                 groups: pygame.sprite.Group,
+                 pos: Tuple[int, int],
+                 groups: List[pygame.sprite.Group],
                  obstacles: pygame.sprite.Group) -> None:
         """ Constructor.
 
-        :param pos: _description_
-        :type  pos: _type_
-        :param groups: _description_
-        :type  groups: _type_
+        :param pos:       location of top-left corner in pixels (x, y)
+        :type  pos:       Tuple[int, int]
+        :param groups:    sprite groups containing this tile
+        :type  groups:    List[pygame.sprite.Group]
+        :param obstacles: group for sprites player cannot pass through
+        :type  obstackes: pygame.sprite.Group
         """
         super().__init__(groups)
         self.image = \
@@ -50,7 +53,11 @@ class Player(pygame.sprite.Sprite):
         # pylint: enable=no-member
 
     def handle_collision(self, direction: str) -> None:
-        """ Prevent player from moving through certain sprites. """
+        """ Prevent player from moving through certain sprites.
+
+            :param direction: direction in which to check collisions
+            :type  direction: str
+        """
         if direction == 'horizontal':
             for sprite in self.obstacles:
                 if sprite.rect.colliderect(self.rect):
@@ -67,7 +74,7 @@ class Player(pygame.sprite.Sprite):
                     if self.direction.y < 0:
                         self.rect.top = sprite.rect.bottom
 
-    def move(self):
+    def move(self) -> None:
         """ Update player location in game. """
         if self.direction.magnitude() != 0:
             self.direction = self.direction.normalize()
