@@ -39,6 +39,7 @@ class Level:
         self.display_surface = pygame.display.get_surface()
         self.visible_sprites = pygame.sprite.Group()   # can see on screen
         self.obstacle_sprites = pygame.sprite.Group()  # impede player movement
+        self.player = None  # easy-access, often-used, assigned in create_map
         self.create_map()
 
     def create_map(self) -> None:
@@ -52,11 +53,13 @@ class Level:
                         [self.visible_sprites, self.obstacle_sprites]
                     )
                 elif val == 'p':
-                    Player(
+                    self.player = Player(
                         (x_pixel, y_pixel),
-                        [self.visible_sprites]
+                        [self.visible_sprites],
+                        self.obstacle_sprites
                     )
 
     def run(self) -> None:
         """ Load level into game. """
         self.visible_sprites.draw(self.display_surface)
+        self.visible_sprites.update()
