@@ -29,6 +29,8 @@ class Tile(pygame.sprite.Sprite):
         super().__init__(groups)
         self.image = \
             surface or pygame.Surface((TILE_SIZE, TILE_SIZE))  # default
+        if sprite_type == 'object':
+            pos = (pos[0], pos[1] - TILE_SIZE)
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0, -10)  # pixels to add/sub
         self.sprite_type = sprite_type

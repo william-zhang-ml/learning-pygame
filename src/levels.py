@@ -2,11 +2,12 @@
 """
 This module implements levels for the <title TBD> RPG game.
 """
+from random import choice
 import pygame
 from tile import Tile
 from player import Player
 from group import CameraGroup
-from utils import load_map_layer
+from utils import load_map_layer, load_graphics
 
 
 TILE_SIZE = 64
@@ -26,21 +27,49 @@ class Level:
         )
         self.create_map()
 
-    def create_map(self) -> None:
-        """ Assign tiles to locations and sprite groups based on map nums. """
-        layers = {
-            'boundary': load_map_layer('../map/map_FloorBlocks.csv')
+    @staticmethod
+    def load_layers() -> None:
+        """ Loads and organizes level map assets. """
+        return {
+            'boundary': {
+                'layout': load_map_layer('../map/map_FloorBlocks.csv'),
+                'graphics': None,
+                'val_to_graphic': lambda val, graphics: None,
+                'groups': ('obstacle',)
+            },
+            'grass': {
+                'layout': load_map_layer('../map/map_Grass.csv'),
+                'graphics': load_graphics('../graphics/grass'),
+                'val_to_graphic': lambda val, graphics: choice(graphics),
+                'groups': ('visible', 'obstacle')
+            },
+            'object': {
+                'layout': load_map_layer('../map/map_Objects.csv'),
+                'graphics': load_graphics('../graphics/objects'),
+                'val_to_graphic': lambda val, graphics: graphics[val],
+                'groups': ('visible', 'obstacle')
+            }
         }
 
-        for _, layer in layers.items():
-            for row_idx, row in enumerate(layer):
+    def create_map(self) -> None:
+        """ Assign tiles to locations and sprite groups based on map nums. """
+        str_to_group = {
+            'visible': self.visible_sprites,
+            'obstacle': self.obstacle_sprites
+        }
+
+        # define each tile in a level map layer in terms of its:
+        # location, group membership, layer membership, graphic
+        for layer_name, layer in self.load_layers().items():
+            for row_idx, row in enumerate(layer['layout']):
                 for col_idx, val in enumerate(row):
                     x_pixel, y_pixel = TILE_SIZE * col_idx, TILE_SIZE * row_idx
-                    if val == 395:
+                    if val != -1:  # not whitespace
                         Tile(
                             (x_pixel, y_pixel),
-                            [self.obstacle_sprites],
-                            'invisible'
+                            [str_to_group[s] for s in layer['groups']],
+                            layer_name,
+                            layer['val_to_graphic'](val, layer['graphics'])
                         )
 
     def run(self) -> None:
