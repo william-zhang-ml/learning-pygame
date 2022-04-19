@@ -9,6 +9,39 @@ from utils import load_graphics
 SPEED = 20  # pixels per second
 ATTACK_COOLDOWN = 100
 ANIMATION_SPEED = 0.25
+WEAPON_DATA = [
+    {
+        'type': 'sword',
+        'cooldown': 100,
+        'damage': 15,
+        'graphic': '../graphics/weapons/sword/full.png'
+    },
+    {
+        'type': 'lance',
+        'cooldown': 400,
+        'damage': 30,
+        'graphic': '../graphics/weapons/lance/full.png'
+    },
+    {
+        'type': 'axe',
+        'cooldown': 300,
+        'damage': 20,
+        'graphic': '../graphics/weapons/axe/full.png'
+    },
+    {
+        'type': 'rapier',
+        'cooldown': 50,
+        'damage': 8,
+        'graphic': '../graphics/weapons/rapier/full.png'
+    },
+    {
+        'type': 'sai',
+        'cooldown': 80,
+        'damage': 10,
+        'graphic': '../graphics/weapons/sai/full.png'
+    }
+]
+N_WEAPONS = len(WEAPON_DATA)
 
 
 class Player(pygame.sprite.Sprite):
@@ -49,6 +82,7 @@ class Player(pygame.sprite.Sprite):
             )
 
         # set initial player status values
+        self.weapon_idx = 0
         self.is_attacking = False
         self.attack_start_time = None
         # pylint: disable=c-extension-no-member
@@ -62,6 +96,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.image_lookup['down_idle'][0]
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0, -26)  # pixels to add/sub
+        self.weapon = None  # weapon sprite on screen
 
         # other
         self.obstacles = obstacles  # for collision handling
@@ -72,7 +107,7 @@ class Player(pygame.sprite.Sprite):
 
         # ATTACK
         # pylint: disable=no-member
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_LSHIFT]:
             self.is_attacking = True
             self.attack_start_time = pygame.time.get_ticks()
         # pylint: enable=no-member
@@ -161,9 +196,48 @@ class Player(pygame.sprite.Sprite):
         self.handle_collision('vertical')
         self.rect.center = self.hitbox.center
 
+    def show_weapon(self) -> None:
+        """ Create and show weapon sprite if player is attacking. """
+        if self.weapon is not None:
+            self.weapon.kill()
+        if self.is_attacking:
+            self.weapon = Weapon(self)
+
     def update(self) -> None:
         """ Check user input for movement and move. """
         self.get_input()
         self.apply_cooldown()
         self.set_image()
         self.move()
+        self.show_weapon()
+
+
+class Weapon(pygame.sprite.Sprite):
+    """ Weapon asset. """
+    def __init__(self, player: Player) -> None:
+        """ Constructor.
+
+            :param player: player that owns the weapon
+            :type  player: Player
+        """
+        super().__init__(player.groups())
+        weapon_type = WEAPON_DATA[player.weapon_idx]['type']
+        self.image = pygame.image.load(
+            f'../graphics/weapons/{weapon_type}/{player.facing}.png'
+        ).convert_alpha()
+
+        # offset placement away from player and adjust for player's sprite arm
+        # pylint: disable=c-extension-no-member
+        if player.facing == 'right':
+            self.rect = self.image.get_rect(midleft=player.rect.midright +
+                                            pygame.math.Vector2(0, 16))
+        elif player.facing == 'left':
+            self.rect = self.image.get_rect(midright=player.rect.midleft +
+                                            pygame.math.Vector2(0, 16))
+        elif player.facing == 'down':
+            self.rect = self.image.get_rect(midtop=player.rect.midbottom +
+                                            pygame.math.Vector2(-10, 0))
+        else:
+            self.rect = self.image.get_rect(midbottom=player.rect.midtop +
+                                            pygame.math.Vector2(-10, 0))
+        # pylint: enable=c-extension-no-member
