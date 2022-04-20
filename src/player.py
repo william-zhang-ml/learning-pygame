@@ -7,6 +7,7 @@ from utils import load_graphics
 
 
 SPEED = 20  # pixels per second
+CHANGE_WEAPON_COOLDOWN = 150
 ATTACK_COOLDOWN = 100
 ANIMATION_SPEED = 0.25
 WEAPON_DATA = [
@@ -82,14 +83,16 @@ class Player(pygame.sprite.Sprite):
             )
 
         # set initial player status values
+        self.health, self.max_health = 80, 100
+        self.mana, self.max_mana = 50, 75
+        self.exp = 420
         self.weapon_idx = 0
-        self.is_attacking = False
-        self.attack_start_time = None
+        self.can_change_weapon, self.change_weapon_time = True, 0
+        self.is_attacking, self.attack_start_time = False, None
         # pylint: disable=c-extension-no-member
-        self.direction = pygame.math.Vector2()
-        # pylint: enable=c-extension-no-member
         self.facing = 'down'
-        self.is_still = True
+        self.is_still, self.direction = True, pygame.math.Vector2()
+        # pylint: enable=c-extension-no-member
 
         # set initial image to display
         self.frame_idx = 0
@@ -104,6 +107,14 @@ class Player(pygame.sprite.Sprite):
     def get_input(self) -> None:
         """ Get user input and update player status. """
         keys = pygame.key.get_pressed()
+
+        # WEAPON CHANGE
+        # pylint: disable=no-member
+        if keys[pygame.K_q] and self.can_change_weapon:
+            self.weapon_idx = (self.weapon_idx + 1) % N_WEAPONS
+            self.can_change_weapon = False
+            self.change_weapon_time = pygame.time.get_ticks()
+        # pylint: enable=no-member
 
         # ATTACK
         # pylint: disable=no-member
@@ -122,20 +133,21 @@ class Player(pygame.sprite.Sprite):
         # MOVEMENT
         # pylint: disable=no-member
         if keys[pygame.K_UP]:
-            self.direction.y = -1
             self.facing = 'up'
+            self.direction.y = -1
+
         elif keys[pygame.K_DOWN]:
-            self.direction.y = 1
             self.facing = 'down'
+            self.direction.y = 1
         else:
             self.direction.y = 0
 
         if keys[pygame.K_LEFT]:
-            self.direction.x = -1
             self.facing = 'left'
+            self.direction.x = -1
         elif keys[pygame.K_RIGHT]:
-            self.direction.x = 1
             self.facing = 'right'
+            self.direction.x = 1
         else:
             self.direction.x = 0
         # pylint: enable=no-member
@@ -168,6 +180,8 @@ class Player(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         self.is_attacking = self.is_attacking and \
             current_time - self.attack_start_time < ATTACK_COOLDOWN
+        self.can_change_weapon = \
+            current_time - self.change_weapon_time > CHANGE_WEAPON_COOLDOWN
 
     def get_status_str(self) -> str:
         """ Create image lookup string from status info. """

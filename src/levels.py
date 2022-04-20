@@ -4,9 +4,10 @@ This module implements levels for the <title TBD> RPG game.
 """
 from random import choice
 import pygame
-from tile import Tile
-from player import Player
 from group import CameraGroup
+from player import Player
+from tile import Tile
+from ui import UserInterface
 from utils import load_map_layer, load_graphics
 
 
@@ -25,6 +26,7 @@ class Level:
             [self.visible_sprites],
             self.obstacle_sprites
         )
+        self.user_interface = UserInterface()
         self.create_map()
 
     @staticmethod
@@ -76,3 +78,4 @@ class Level:
         """ Load level into game. """
         self.visible_sprites.custom_draw(self.player)
         self.visible_sprites.update()
+        self.user_interface.display(self.player)
