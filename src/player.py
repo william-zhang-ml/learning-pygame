@@ -3,10 +3,10 @@ This module implements the player asset.
 """
 from typing import List, Tuple
 import pygame
+from entity import Entity
 from utils import load_graphics
 
 
-SPEED = 20  # pixels per second
 CHANGE_WEAPON_COOLDOWN = 150
 ATTACK_COOLDOWN = 100
 ANIMATION_SPEED = 0.25
@@ -45,7 +45,7 @@ WEAPON_DATA = [
 N_WEAPONS = len(WEAPON_DATA)
 
 
-class Player(pygame.sprite.Sprite):
+class Player(Entity):
     """ Player asset for levels. """
     def __init__(self,
                  pos: Tuple[int, int],
@@ -89,10 +89,7 @@ class Player(pygame.sprite.Sprite):
         self.weapon_idx = 0
         self.can_change_weapon, self.change_weapon_time = True, 0
         self.is_attacking, self.attack_start_time = False, None
-        # pylint: disable=c-extension-no-member
-        self.facing = 'down'
-        self.is_still, self.direction = True, pygame.math.Vector2()
-        # pylint: enable=c-extension-no-member
+        self.facing, self.is_still = 'down', True
 
         # set initial image to display
         self.frame_idx = 0
@@ -153,28 +150,6 @@ class Player(pygame.sprite.Sprite):
         # pylint: enable=no-member
         self.is_still = self.direction.x == 0 and self.direction.y == 0
 
-    def handle_collision(self, direction: str) -> None:
-        """ Prevent player from moving through certain sprites.
-
-            :param direction: direction in which to check collisions
-            :type  direction: str
-        """
-        if direction == 'horizontal':
-            for sprite in self.obstacles:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.x > 0:
-                        self.hitbox.right = sprite.hitbox.left
-                    if self.direction.x < 0:
-                        self.hitbox.left = sprite.hitbox.right
-
-        if direction == 'vertical':
-            for sprite in self.obstacles:
-                if sprite.hitbox.colliderect(self.hitbox):
-                    if self.direction.y > 0:
-                        self.hitbox.bottom = sprite.hitbox.top
-                    if self.direction.y < 0:
-                        self.hitbox.top = sprite.hitbox.bottom
-
     def apply_cooldown(self) -> None:
         """ Check timers and update player status accordingly. """
         current_time = pygame.time.get_ticks()
@@ -199,16 +174,6 @@ class Player(pygame.sprite.Sprite):
         self.frame_idx = (self.frame_idx + ANIMATION_SPEED) % len(frames)
         self.image = frames[int(self.frame_idx)]
         self.rect = self.image.get_rect(center=self.hitbox.center)
-
-    def move(self) -> None:
-        """ Update player location in game. """
-        if self.direction.magnitude() != 0:
-            self.direction = self.direction.normalize()
-        self.hitbox.x += SPEED * self.direction.x
-        self.handle_collision('horizontal')
-        self.hitbox.y += SPEED * self.direction.y
-        self.handle_collision('vertical')
-        self.rect.center = self.hitbox.center
 
     def show_weapon(self) -> None:
         """ Create and show weapon sprite if player is attacking. """
