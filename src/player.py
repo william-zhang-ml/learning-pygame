@@ -8,6 +8,7 @@ from utils import load_graphics
 
 SPEED = 20  # pixels per second
 CHANGE_WEAPON_COOLDOWN = 150
+CHANGE_MAGIC_COOLDOWN = 150
 ATTACK_COOLDOWN = 100
 ANIMATION_SPEED = 0.25
 WEAPON_DATA = [
@@ -15,34 +16,42 @@ WEAPON_DATA = [
         'type': 'sword',
         'cooldown': 100,
         'damage': 15,
-        'graphic': '../graphics/weapons/sword/full.png'
     },
     {
         'type': 'lance',
         'cooldown': 400,
         'damage': 30,
-        'graphic': '../graphics/weapons/lance/full.png'
     },
     {
         'type': 'axe',
         'cooldown': 300,
         'damage': 20,
-        'graphic': '../graphics/weapons/axe/full.png'
     },
     {
         'type': 'rapier',
         'cooldown': 50,
         'damage': 8,
-        'graphic': '../graphics/weapons/rapier/full.png'
     },
     {
         'type': 'sai',
         'cooldown': 80,
         'damage': 10,
-        'graphic': '../graphics/weapons/sai/full.png'
     }
 ]
 N_WEAPONS = len(WEAPON_DATA)
+MAGIC_DATA = [
+    {
+        'type': 'flame',
+        'strength': 5,
+        'cost': 20,
+    },
+    {
+        'type': 'heal',
+        'strength': 20,
+        'cost': 10,
+    }
+]
+N_MAGIC = len(MAGIC_DATA)
 
 
 class Player(pygame.sprite.Sprite):
@@ -86,8 +95,9 @@ class Player(pygame.sprite.Sprite):
         self.health, self.max_health = 80, 100
         self.mana, self.max_mana = 50, 75
         self.exp = 420
-        self.weapon_idx = 0
+        self.weapon_idx, self.magic_idx = 0, 0
         self.can_change_weapon, self.change_weapon_time = True, 0
+        self.can_change_magic, self.change_magic_time = True, 0
         self.is_attacking, self.attack_start_time = False, None
         # pylint: disable=c-extension-no-member
         self.facing = 'down'
@@ -114,6 +124,14 @@ class Player(pygame.sprite.Sprite):
             self.weapon_idx = (self.weapon_idx + 1) % N_WEAPONS
             self.can_change_weapon = False
             self.change_weapon_time = pygame.time.get_ticks()
+        # pylint: enable=no-member
+
+        # MAGIC CHANGE
+        # pylint: disable=no-member
+        if keys[pygame.K_w] and self.can_change_magic:
+            self.magic_idx = (self.magic_idx + 1) % N_MAGIC
+            self.can_change_magic = False
+            self.change_magic_time = pygame.time.get_ticks()
         # pylint: enable=no-member
 
         # ATTACK
@@ -182,6 +200,8 @@ class Player(pygame.sprite.Sprite):
             current_time - self.attack_start_time < ATTACK_COOLDOWN
         self.can_change_weapon = \
             current_time - self.change_weapon_time > CHANGE_WEAPON_COOLDOWN
+        self.can_change_magic = \
+            current_time - self.change_magic_time > CHANGE_MAGIC_COOLDOWN
 
     def get_status_str(self) -> str:
         """ Create image lookup string from status info. """

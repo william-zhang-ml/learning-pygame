@@ -30,11 +30,17 @@ class UserInterface:
         self.font = pygame.font.Font(UI_FONT, UI_FONT_SIZE)
         self.health_bar = pygame.Rect(*HEALTH_BOX)
         self.mana_bar = pygame.Rect(*MANA_BOX)
-        self.weapon_images = []
+        self.weapon_images, self.magic_images = [], []
         for weap in ['sword', 'lance', 'axe', 'rapier', 'sai']:
             self.weapon_images.append(
                 pygame.image.load(
                     f'../graphics/weapons/{weap}/full.png'
+                ).convert_alpha()
+            )
+        for mag in ['flame', 'heal']:
+            self.magic_images.append(
+                pygame.image.load(
+                    f'../graphics/magic/{mag}/{mag}.png'
                 ).convert_alpha()
             )
 
@@ -99,6 +105,27 @@ class UserInterface:
                 3
             )
 
+    def display_magic_box(self, player: Player) -> None:
+        """ Display a rectangle that shows player's current magics.
+
+            :param player: the player
+            :type  player: Player
+        """
+        bg_rect = pygame.Rect(120, 800, ITEM_BOX_SIZE, ITEM_BOX_SIZE)
+        pygame.draw.rect(self.display_surface, UI_BG_COLOR, bg_rect)
+        fg_magic = self.magic_images[player.magic_idx]
+        self.display_surface.blit(
+            fg_magic,
+            fg_magic.get_rect(center=bg_rect.center)
+        )
+        if not player.can_change_magic:
+            pygame.draw.rect(
+                self.display_surface,
+                UI_BORDER_HIGHLIGHT_COLOR,
+                bg_rect,
+                3
+            )
+
     def display(self, player: Player):
         """ Master UI update function. """
         self.display_bar(
@@ -112,4 +139,5 @@ class UserInterface:
             MANA_COLOR,
             self.mana_bar)
         self.display_weapon_box(player)
+        self.display_magic_box(player)
         self.display_exp(player.exp)
