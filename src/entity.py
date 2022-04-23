@@ -1,5 +1,9 @@
+"""
+This module implements moving and interacting entities.
+"""
 from typing import List
 import pygame
+from utils import load_graphics
 
 
 SPEED = 20  # pixels per frame?
@@ -8,7 +12,8 @@ ANIMATION_SPEED = 0.25
 
 class Entity(pygame.sprite.Sprite):
     """ General parent class for player, NPC, and monsters. """
-    def __init__(self, groups: List[pygame.sprite.Group]) -> None:
+    def __init__(self,
+                 groups: List[pygame.sprite.Group]) -> None:
         """ Constructor.
 
         :param groups:    sprite groups containing this tile
@@ -18,7 +23,7 @@ class Entity(pygame.sprite.Sprite):
         """
         super().__init__(groups)
         self.frame_idx = 0
-        self.direction = pygame.math.Vector2()
+        self.is_attacking, self.attack_start_time = False, None
         # pylint: disable=c-extension-no-member
         self.is_still, self.direction = True, pygame.math.Vector2()
         # pylint: enable=c-extension-no-member
@@ -54,3 +59,33 @@ class Entity(pygame.sprite.Sprite):
         self.hitbox.y += SPEED * self.direction.y
         self.handle_collision('vertical')
         self.rect.center = self.hitbox.center
+
+
+class Enemy(Entity):
+    """ Interactable enemy implementation. """
+    def __init__(self, pos, groups, species: str) -> None:
+        """ Constructor.
+
+        :param pos:       location of top-left corner in pixels (x, y)
+        :type  pos:       Tuple[int, int]
+        :param groups:    sprite groups containing this tile
+        :type  groups:    List[pygame.sprite.Group]
+        :param species:   monster species description (links to images)
+        :type  species:   str
+        """
+        super().__init__(groups)
+
+        # load enemy image assets
+        self.image_lookup = {
+            'attack': load_graphics(f'../graphics/monsters/{species}/attack'),
+            'idle': load_graphics(f'../graphics/monsters/{species}/idle'),
+            'move': load_graphics(f'../graphics/monsters/{species}/move')
+        }
+
+        if self.is_attacking:
+            self.image = self.image_lookup['attack'][self.frame_idx]
+        elif self.is_still:
+            self.image = self.image_lookup['idle'][self.frame_idx]
+        else:
+            self.image = self.image_lookup['move'][self.frame_idx]
+        self.rect = self.image.get_rect(topleft=pos)

@@ -8,6 +8,7 @@ from group import CameraGroup
 from player import Player
 from tile import Tile
 from ui import UserInterface
+from entity import Enemy
 from utils import load_map_layer, load_graphics
 
 
@@ -30,7 +31,7 @@ class Level:
         self.create_map()
 
     @staticmethod
-    def load_layers() -> None:
+    def load_layers() -> dict:
         """ Loads and organizes level map assets. """
         return {
             'boundary': {
@@ -50,6 +51,12 @@ class Level:
                 'graphics': load_graphics('../graphics/objects'),
                 'val_to_graphic': lambda val, graphics: graphics[val],
                 'groups': ('visible', 'obstacle')
+            },
+            'entity': {
+                'layout': load_map_layer('../map/map_Entities.csv'),
+                'graphics': None,
+                'val_to_graphic': lambda val, graphics: None,
+                'groups': {'visible'}
             }
         }
 
@@ -59,6 +66,12 @@ class Level:
             'visible': self.visible_sprites,
             'obstacle': self.obstacle_sprites
         }
+        monster_val_to_species = {
+            390: 'bamboo',
+            391: 'spirit',
+            392: 'raccoon',
+            393: 'squid'
+        }
 
         # define each tile in a level map layer in terms of its:
         # location, group membership, layer membership, graphic
@@ -67,12 +80,21 @@ class Level:
                 for col_idx, val in enumerate(row):
                     x_pixel, y_pixel = TILE_SIZE * col_idx, TILE_SIZE * row_idx
                     if val != -1:  # not whitespace
-                        Tile(
-                            (x_pixel, y_pixel),
-                            [str_to_group[s] for s in layer['groups']],
-                            layer_name,
-                            layer['val_to_graphic'](val, layer['graphics'])
-                        )
+                        if layer_name == 'entity':
+                            if val == 394:
+                                continue  # player
+                            Enemy(
+                                (x_pixel, y_pixel),
+                                [str_to_group[s] for s in layer['groups']],
+                                monster_val_to_species[val]
+                            )
+                        else:
+                            Tile(
+                                (x_pixel, y_pixel),
+                                [str_to_group[s] for s in layer['groups']],
+                                layer_name,
+                                layer['val_to_graphic'](val, layer['graphics'])
+                            )
 
     def run(self) -> None:
         """ Load level into game. """

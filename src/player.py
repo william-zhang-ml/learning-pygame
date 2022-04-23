@@ -88,11 +88,9 @@ class Player(Entity):
         self.exp = 420
         self.weapon_idx = 0
         self.can_change_weapon, self.change_weapon_time = True, 0
-        self.is_attacking, self.attack_start_time = False, None
-        self.facing, self.is_still = 'down', True
+        self.facing = 'down'
 
         # set initial image to display
-        self.frame_idx = 0
         self.image = self.image_lookup['down_idle'][0]
         self.rect = self.image.get_rect(topleft=pos)
         self.hitbox = self.rect.inflate(0, -26)  # pixels to add/sub
